@@ -1,0 +1,60 @@
+[submodule "memleak-finder"]
+	path = memleak-finder
+	url = https://github.com/efficios/memleak-finder
+[submodule "nedmalloc"]
+	path = nedmalloc
+	url = https://github.com/ned14/nedmalloc
+[submodule "Malloc-Implementations"]
+	path = Malloc-Implementations
+	url = https://github.com/emeryberger/Malloc-Implementations
+[submodule "malloc_count"]
+	path = malloc_count
+	url = https://github.com/bingmann/malloc_count
+[submodule "malloc-tutorial"]
+	path = malloc-tutorial
+	url = https://github.com/danluu/malloc-tutorial
+[submodule "umm_malloc"]
+	path = umm_malloc
+	url = https://github.com/rhempel/umm_malloc
+[submodule "mleak"]
+	path = mleak
+	url = https://github.com/hyc/mleak
+[submodule "count-malloc"]
+	path = count-malloc
+	url = https://github.com/zunda/count-malloc
+[submodule "malloc-lab"]
+	path = malloc-lab
+	url = https://github.com/htian/malloc-lab
+[submodule "hack-malloc"]
+	path = hack-malloc
+	url = https://github.com/embedded2013/hack-malloc
+[submodule "memalloc"]
+	path = memalloc
+	url = https://github.com/brightroll/memalloc
+[submodule "libmalloc"]
+	path = libmalloc
+	url = https://github.com/scalp42/libmalloc
+[submodule "salmalloc"]
+	path = salmalloc
+	url = https://github.com/sal-j/salmalloc
+[submodule "shm_malloc"]
+	path = shm_malloc
+	url = https://github.com/ChrisDodd/shm_malloc
+[submodule "libmallochooks"]
+	path = libmallochooks
+	url = https://github.com/stephenrkell/libmallochooks
+[submodule "malloc_wrap"]
+	path = malloc_wrap
+	url = https://github.com/ice799/malloc_wrap
+[submodule "malloc_instrumentation"]
+	path = malloc_instrumentation
+	url = https://github.com/jtolds/malloc_instrumentation
+[submodule "memory-wrapper"]
+	path = memory-wrapper
+	url = https://github.com/meetrp/memory-wrapper
+[submodule "wrap_malloc"]
+	path = wrap_malloc
+	url = https://github.com/tohin/wrap_malloc
+[submodule "Memory-Leak-Tracer"]
+	path = Memory-Leak-Tracer
+	url = https://github.com/tahardi/Memory-Leak-Tracer
