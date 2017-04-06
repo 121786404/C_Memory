@@ -28,9 +28,24 @@
 [submodule "memory-wrapper"]
 	path = memory-wrapper
 	url = https://github.com/meetrp/memory-wrapper
-[submodule "wrap_malloc"]
-	path = wrap_malloc
-	url = https://github.com/tohin/wrap_malloc
 [submodule "Memory-Leak-Tracer"]
 	path = Memory-Leak-Tracer
 	url = https://github.com/tahardi/Memory-Leak-Tracer
+[submodule "libumem"]
+	path = libumem
+	url = https://github.com/gburd/libumem
+[submodule "drmemory"]
+	path = drmemory
+	url = https://github.com/DynamoRIO/drmemory
+[submodule "valgrind-trunk-3"]
+	path = valgrind-trunk-3
+	url = https://github.com/svn2github/valgrind-trunk-3
+[submodule "mpatrol"]
+	path = mpatrol
+	url = https://github.com/groleo/mpatrol
+[submodule "electric-fence"]
+	path = electric-fence
+	url = https://github.com/CheggEng/electric-fence
+[submodule "cstuff"]
+	path = cstuff
+	url = https://github.com/MoserMichael/cstuff
