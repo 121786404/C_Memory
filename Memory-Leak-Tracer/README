@@ -1,0 +1,17 @@
+DESIGN:
+  Leakcount   - Leakcount is relatively simple. It parses the terminal commands,
+	        and uses them to call execvpe in the child process. The parent
+	        simply waits for the child to finish and then exits.
+
+  Memory_Shim - Utilized by the child process created in leakcount. Serves to 
+		intercept calls to malloc/free. It uses a linked list to store
+		the ptrs created by malloc and the size of memory created. In 
+		the destructor I first iterate all the way through the list, and
+		store any unfreed mem in leaks[]. I then use leaks[] to print
+		afterwards. This is because, when I try to print during my iteration
+		through the list, fprintf was calling malloc and modifing the list
+		as I was trying to go through it.
+
+EXECUTION:
+	        ./leakcount ./test_prog
+		./leakcount ./test_prog test_prog_arg
