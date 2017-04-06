@@ -28,9 +28,6 @@
 [submodule "memory-wrapper"]
 	path = memory-wrapper
 	url = https://github.com/meetrp/memory-wrapper
-[submodule "Memory-Leak-Tracer"]
-	path = Memory-Leak-Tracer
-	url = https://github.com/tahardi/Memory-Leak-Tracer
 [submodule "libumem"]
 	path = libumem
 	url = https://github.com/gburd/libumem
