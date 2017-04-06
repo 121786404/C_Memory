@@ -1,0 +1,35 @@
+------------------------------------------------------------------------------
+USAGE:
+------------------------------------------------------------------------------
+
+The library comes with a script 'ccmalloc' that you just need to add as
+first argument to the link command in your project.  A typical project build
+might look like this:
+  
+  gcc -c -o mod1.o mod1.c		# compilation
+  gcc -c -o mod2.o mod2.c		# compilation
+  gcc -o binary mod1.o mod2.o -lm	# linking
+
+Now you just have to replace the linking command with
+
+  ccmalloc gcc -o binary mod1.o mod2.o -lm	# linking
+
+It does no harm to also use the 'ccmalloc' prefix for compilation only,
+since the script tries to analyse the arguments and just calls the compiler
+if linking is supposed to be omitted.
+
+Depending on the installation prefix, e.g. see the '--prefix' option to
+'configure', this will actually execute the following command:
+  
+  gcc -o binary mod1.o mod2.o -lm /usr/local/lib/ccmalloc-gcc.o \
+    -L/usr/local/lib -lccmalloc -ldl
+  
+You can, of course, specify this last command manually without using the
+'ccmalloc' script.  This may be necessary for some configurations.  Note,
+that the 'ccmalloc-<CXX>.o' file is just a C++ wrapper for ccmalloc and may
+be omitted (in version 3.8 this may not be true anymore).
+
+------------------------------------------------------------------------------
+(C) 1997-2003 Armin Biere
+$Id: USAGE,v 1.5 2003/02/03 08:03:54 biere Exp $
+------------------------------------------------------------------------------

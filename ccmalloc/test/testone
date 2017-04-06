@@ -1,0 +1,82 @@
+#!/bin/sh
+
+if [ x"$LD_LIBRARY_PATH" = x ]
+then
+  LD_LIBRARY_PATH=.
+else
+  LD_LIBRARY_PATH=$LD_LIBRARY_PATH:.
+fi
+
+export LD_LIBRARY_PATH
+
+if [ ! "$CC" ]
+then
+  echo "*** $0: no compiler specified in enviroment variable CC" 1>&2
+  exit 1
+fi
+
+if [ "$CC" = CC ]
+then
+  echo "*** $0: CC as linker is not supported yet" 1>&2
+  echo "*** $0: (even compilation of test cases may fail)" 1>&2
+fi
+
+if test "x$1" = x
+then
+  echo "*** $0: argument is missing" 1>&2
+  exit 1
+fi
+
+if test ! -f "$1"
+then
+  echo "*** $0: could not find $1" 1>&2
+  exit 1
+fi
+
+base=`basename "$1" .c`
+if test ! "${base}.c" = "$1"
+then
+  base=`basename "$1" .cc`
+  if test ! "${base}.cc" = "$1"
+  then
+    echo "*** $0: could not recognize extension" 1>&2
+    exit 1
+  fi
+fi
+
+startupfile=`echo "$base" | sed -e 's,test,ccmalloc,'`
+if test ! -f "$startupfile"
+then
+  echo "*** $0: could not find startup file $startupfile" 1>&2
+  exit 1
+fi
+
+rm -f .ccmalloc
+cp $startupfile .ccmalloc
+( echo '1,$s,^\(log.*\) test_,\1 '"${CC}_,";echo w; echo q ) | \
+ed .ccmalloc 1>/dev/null 2>/dev/null
+
+target=${base}.exe
+
+# These object files may contain compiler dependent link information
+#
+case $base in
+  test_C_19) rm -f lib_test_C_19.so lib_test_C_19.o;;
+  test_C_11) rm -f lib_test_C_11.a lib_test_C_11.o;;
+esac
+
+echo "compiling" $1 "  with $CC"
+make $target 1> /dev/null || exit 1
+
+if test ! "x$REMOVE_TEMPORARIES" = x
+then
+  rm -f ${base}.o
+fi
+
+echo "running  " $target
+./execute $target
+
+if test ! "x$REMOVE_TEMPORARIES" = x
+then
+  rm -f $target
+fi

@@ -1,0 +1,196 @@
+------------------------------------------------------------------------------
+NEWS for version 0.4.0
+------------------------------------------------------------------------------
+
+o  work around for gcc 2.95.4 and 3.0.4 for non conforming
+   __builtin_return_address()  (Edward Welbourne).
+
+o  new '--no-wrapper' option to ccmalloc script allows to disable C++ support
+   by not linking against the C++ wrapper.
+
+o  malloc in wrapper.c only fills the new allocated block with the magic
+   char 0x42 if the allocation of the block was successful.  This allows to
+   stress test the memory system even with ccmalloc compiled in (like
+   calling 'malloc((1 << 31))').
+
+------------------------------------------------------------------------------
+NEWS for version 0.3.9
+------------------------------------------------------------------------------
+
+o  fixed configure to work on FreeBSD
+
+o  patched configure to correctly set 'HAVE_ATEXIT' and also detect the path
+   of the default dynamically linked libc.  This patch fixes some problems 
+   with Redhat 7.1 which uses libc6.
+
+o  '--version' and '--help' for 'ccmalloc' script
+
+o  finally allowed 'free(0)'
+
+------------------------------------------------------------------------------
+NEWS for version 0.3.8
+------------------------------------------------------------------------------
+
+o  checking statically allocated dynamic data for C++ seems to work again
+
+o  better support for C++: increased buffer size, better lexer for parsing
+   demangling info of C++ template symbols from gdb (Henning Moll).
+
+------------------------------------------------------------------------------
+NEWS for version 0.3.7
+------------------------------------------------------------------------------
+
+o  fixed 'ccmalloc' script to skip files compiled with '-S' and '-c'
+
+o  fixed 'ccmalloc' script to filter out '-o <object-file>' as well
+
+o  do not log chain that contain a reference to 'ccmalloc_init'
+
+------------------------------------------------------------------------------
+NEWS for version 0.3.4
+------------------------------------------------------------------------------
+
+o  Started to work on compatibility with Sun's workshop compiler CC. 
+   The idea is to compile 'callchain.c' with 'gcc' and the 'C++' wrapper
+   'ccmalloc.cc' with 'CC'.  Then it should be possible to link and compile
+   your own project with 'CC'.  Just link as follows 
+     
+     CC -o binary your-obj1.o your-obj2.o ccmalloc-CC.o -lccmalloc -ldl
+    
+   I also added a script 'ccmalloc' that hides this additional arguments to
+   the compiler and makes the usage of ccmalloc similar to the usage of
+   'purify'.  Now the standard way of using ccmalloc with C++ becomes 
+
+     ccmalloc CC -o binary your-obj1.o your-obj2.o
+    
+   or with 'gcc'
+
+     ccmalloc gcc -o binary your-obj1.o your-obj2.o
+   
+   However, for some unknown reason 'CC' still produces link errors and
+   this feature does not work yet.
+
+o  Added patches by Fritz Elfert for better command line argument detection
+   under Linux (and actually reenabled the whole detection code).
+
+------------------------------------------------------------------------------
+NEWS for version 0.3.3 (patches from Henning Moll)
+------------------------------------------------------------------------------
+
+o  Fixed off by one bug in reporting line number
+
+o  Used 'set width 0' command for GDB to produce easier to parse one line
+   output.  This removes some 'could not read info from gdb' messages, i.e.
+   with long symbol names as in STL.
+
+o  Skipped 'Current language: ...' message from GDB for better support of
+   multiple language debugging.
+
+o  Better heuristics for skipping library callchains.
+
+------------------------------------------------------------------------------
+NEWS for version 0.3.2
+------------------------------------------------------------------------------
+
+o  Initialized 'logfile' properly
+
+o  Added '-x' for 'nm' on Solaris
+
+o  Forced 'gdb' not to read initialization file '.gdbinit'
+
+------------------------------------------------------------------------------
+NEWS for version 0.3.0
+------------------------------------------------------------------------------
+
+o  Removed support for SunOS (only Solaris and Linux left)
+
+o  Added the ability for ccmalloc to report only the call chains for wasted
+   allocations, i.e. allocations which were not completely freed properly
+   (Ian Ishmael).
+
+------------------------------------------------------------------------------
+NEWS for version 0.2.4
+------------------------------------------------------------------------------
+
+o  Moved `banner()' out of the initialization code. This fixed the `ctime'
+   bug:  Because `banner()' calls `ctime' itself, and `ctime' might call
+   malloc, the memory potentially allocated by ctime must be public memory,
+   since it could be deallocated from a following call to `ctime'
+   originating outside from `ccmalloc'.
+
+------------------------------------------------------------------------------
+NEWS for version 0.2.3
+------------------------------------------------------------------------------
+
+new features:
+=============
+
+o  Change the cmp_CallChains_by_*_for_Qsort functions to not return 0 so
+   often by comparing them on address data, too. (This means we have to
+   read in the data from gdb before sorting the callchains.) This allows
+   one to compare resulting log files from different runs of the same
+   program with, e.g. diff or emacs ediff, without getting too many
+   irrelevant differences (Johannes).
+
+o  Last, but not least, read address data for dynamic libraries from gdb
+   as well. Only works for those dynamic libraries that the program is
+   linked with, not the ones that are dlopen'ed explicitly. Controlled
+   by a flag called `load-dynlibs' (Johannes).
+
+o  new flag `align-8-byte' to align memory to 8 byte on Linux.
+
+bugfixes:
+=========
+
+o  The configure script now tries to find the standard C library (libc.so)
+   and checks if it can be opened with dlopen.  This should make ccmalloc
+   run on Redhat 5.0 Linux out of the box.
+
+o  GPL ;-)
+
+o  Fix the src/Makefile so that it also installs the config file and
+   so that install depends on ccmalloc.o (Johannes).
+
+------------------------------------------------------------------------------
+NEWS for version 0.2.2
+------------------------------------------------------------------------------
+
+bug fixes:
+==========
+
+o  `wrapper.c' did not handle realloc correctly while in state INITIALIZING.
+
+   This lead to `*** realloc(0x8065f3d) called with non valid argument'
+   before the program was even started. This bug occured when using KDE
+   together with Qt. Now even the static allocator in wrapper.c saves the
+   size of the allocated data.
+
+------------------------------------------------------------------------------
+NEWS for version 0.2.1
+------------------------------------------------------------------------------
+
+bug fixes:
+==========
+
+o  returned data is now 8 byte aligned on SunOS and Solaris. This avoids
+   a Bus Error when allocating heap memory for doubles.
+   (a lot of people reported that bug)
+
+o  shrinking allocated data with realloc works now
+   (a lot of people reported that bug)
+
+o  fixed dereferencing bug in cmpAddr (Johannes Keukelaar)
+
+o  calls fflush before killing itself
+
+new features:
+=============
+
+o  `only-log-chain' and `dont-log-chain' (Johannes Keukelaar)
+
+o  `logpid' (Didier Remy)
+
+------------------------------------------------------------------------------
+(C) 1997-2003 Armin Biere
+$Id: NEWS,v 1.19 2003/02/03 08:03:54 biere Exp $
+------------------------------------------------------------------------------

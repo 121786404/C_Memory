@@ -1,0 +1,51 @@
+CC=@CC@
+CFLAGS=@CFLAGS@
+COMPILERS=@COMPILERS@
+TARGETS=lib/libccmalloc.a @TARGETS@ bin/ccmalloc
+PREFIX=@PREFIX@
+
+#--------------------------------------------------------------------------#
+
+OBJ=obj/callchain.o obj/hash.o obj/wrapper.o
+
+#--------------------------------------------------------------------------#
+
+all: $(TARGETS)
+
+clean:
+	rm -f obj/*.o lib/*.a bin/* core
+
+distclean: clean
+	rm -f src/config.h Makefile
+	rm -rf obj lib bin
+	cd test; make clean
+
+#--------------------------------------------------------------------------#
+# The library is not inialized statically.  Thus the library may produce
+# some bogus messages like `free(...) called after reporting'.  However it
+# should work even if another compiler is used by the user.
+#
+lib/libccmalloc.a: $(OBJ)
+	ar rc $@ $(OBJ)
+	ranlib $@
+
+#--------------------------------------------------------------------------#
+
+obj/callchain.o: src/config.h src/hash.h src/callchain.c src/ccmalloc.h
+	$(CC) $(CFLAGS) -c -o $@ src/callchain.c
+obj/hash.o: src/hash.h src/hash.c
+	$(CC) $(CFLAGS) -c -o $@ src/hash.c
+obj/wrapper.o: src/config.h src/wrapper.c
+	$(CC) $(CFLAGS) -c -o $@ src/wrapper.c
+bin/ccmalloc: Makefile src/ccmalloc.in
+	rm -f $@
+	sed \
+	-e 's,@''PREFIX@,$(PREFIX),g' \
+	-e 's,@''COMPILERS@,"$(COMPILERS)",g' \
+	-e 's,@''VERSION@,@VERSION@,g' \
+	src/ccmalloc.in > $@
+	chmod 755 $@
+
+#--------------------------------------------------------------------------#
+
+.PHONY: all clean distclean install uninstall

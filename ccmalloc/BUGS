@@ -1,0 +1,36 @@
+------------------------------------------------------------------------------
+BUGS:
+------------------------------------------------------------------------------
+
+(1) A leaking file descriptor may result in a segmentation fault after
+the report of ccmalloc has been printed.  Fixing the leak should make
+the fault go away.
+
+(2) Thread support does not seem to work.
+
+(3) Linking and compiling your own projects with Sun's CC still does not
+work.
+
+(4) On newer Linux systems or just with newer version of GLIBC I sometimes
+get a call from 'free()' after the shutdown code of ccmalloc has been
+executed.  This is currently reported as a problem but should be ignored.
+
+(5) If you call malloc and free only implicitly over library functions
+of the C-library like strdup then the linker does not link the malloc
+called by strdup to the malloc supported by ccmalloc and you do not
+get any ccmalloc report at all! To avoid this make sure that your object
+file has malloc or free as external symbols (e.g. the leak in the program
+`main(){strdup();}' can not be detected)
+
+(6) Some standard libraries like libc or lg++ may also have memory leaks.
+ccmalloc tries to exclude these leaks from the report (see `library-leaks'
+in `start-up-file' or `.ccmalloc').  However some libraries maintain an
+internal buffer usually referenced through a static variable and the buffer
+memory is never released.  These buffers are always reported as a leak and
+in my opinion actually should be reported as a leak, since using a static
+pointer to a buffer which is never released is poor design in my view.
+
+------------------------------------------------------------------------------
+(C) 1997-2001 Armin Biere
+$Id: BUGS,v 1.5 2003/02/03 08:03:54 biere Exp $
+------------------------------------------------------------------------------

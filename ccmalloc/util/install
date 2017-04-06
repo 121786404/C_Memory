@@ -1,0 +1,55 @@
+#!/bin/sh
+src="$1"
+dst="$2"
+
+if [ ! "$src" ]
+then
+  echo "*** $0: 1st argument is empty" 1>&2
+  exit 1
+fi
+
+if [ ! "$dst" ]
+then
+  echo "*** $0: 1st argument is empty" 1>&2
+  exit 1
+fi
+
+if [ ! -f "$src" ]
+then
+  echo "*** $0: 1st argument '$1' is no file" 1>&2
+  exit 1
+fi
+
+case "$dst" in
+  /*)
+    ;;
+  *)
+    echo "*** $0: 2nd argument '$2' is not an absolute pathname" 2>&1
+    exit 1
+    ;;
+esac
+
+tmp=`echo "$dst" | sed -e 's,[ 	],@,g'`
+if [ ! "$tmp" = $dst ]
+then
+  echo "*** $0: 2nd argument contains white space characters" 2>&1
+  exit 1
+fi
+
+parts=`echo "$dst" | sed -e 's,/[/]*, ,g'`
+src="`pwd`"/"$src"
+
+cd /
+
+if [ "$parts" ]
+then
+  for p in $parts
+  do
+    [ -d $p ] || mkdir $p || exit 1
+    cd $p || exit 1
+  done
+fi
+
+cp $src $dst || exit 1
+
+exit 0

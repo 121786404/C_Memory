@@ -1,0 +1,30 @@
+------------------------------------------------------------------------------
+INSTALL:
+------------------------------------------------------------------------------
+
+Run the 'configure' script with an optional installation prefix as argument
+(default is '--prefix=/usr/local').  Then type 'make' followed by 'make
+install', after which you can clean up the compilation directory with 'make
+distclean'.  By default a library
+  
+  $(PREFIX)/lib/libccmalloc.o
+
+is installed and for each available C++ compiler a C++ wrapper is installed:
+
+  $(PREFIX)/lib/ccmalloc-gcc.o
+  $(PREFIX)/lib/ccmalloc-g++.o
+  $(PREFIX)/lib/ccmalloc-CC.o		# not working yet !!!
+  ...
+
+
+You should copy 'ccmalloc.cfg' as '.ccmalloc' to your project directory and
+read it carefully.
+
+The distribution also contains some tests that can be run by issuing the
+command 'make test'.  However the output of the test cases has to be
+inspected manually.
+
+------------------------------------------------------------------------------
+(C) 1997-2003 Armin Biere
+$Id: INSTALL,v 1.6 2003/02/03 08:03:54 biere Exp $
+------------------------------------------------------------------------------

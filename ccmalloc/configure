@@ -1,0 +1,377 @@
+#!/bin/sh
+
+#--------------------------------------------------------------------------#
+
+usage() {
+  echo "usage:  configure [--prefix=<dir>][--debug]"
+  echo ""
+  echo "  --prefix=<dir>   specify installation prefix"
+  echo "  --debug          enable internal debugging of library"
+  echo
+  cat <<EOF
+The environment variable 'CC' may be used to specify the preferred C
+compiler.  For example if you use a Bourne shell you could say
+  
+  CC=cc ./configure
+
+to overwrite the default C compiler search list, which is 'gcc cc'.
+Similarly the environment variable CXX can be used to speficy a list of C++
+compilers, for which we build special object files.  Here the default search
+list is 'g++ gcc CC'.
+EOF
+}
+
+#--------------------------------------------------------------------------#
+# setup default values
+#
+fmt="%-26s ..."
+debug=no
+prefix=/usr/local
+os=unsupported
+
+#--------------------------------------------------------------------------#
+# process command line options
+#
+while [ $# -gt 0 ]
+do
+  case $1 in
+    -h | --help | -?)
+      usage
+      exit 0
+      ;;
+    --prefix=*)
+      prefix=`expr $1 : '--prefix=\(.*\)'`
+      ;;
+    --debug)
+      debug=yes
+      ;;
+    *)
+      echo "*** configure: unknown command line option (try '-h')" 1>&2
+      exit 1
+      ;;
+  esac
+  shift
+done
+
+#--------------------------------------------------------------------------#
+# get version
+#
+printf "$fmt" "version"
+version=`cat VERSION`
+echo " $version"
+
+#--------------------------------------------------------------------------#
+# check if OS is supported
+#
+
+printf "$fmt" "system"
+
+case `uname` in
+  SunOS )
+    case `uname -r` in
+      5.* )
+        os=solaris
+        ;;
+    esac
+    ;;
+  Linux )
+    os=linux
+    ;;
+  FreeBSD )
+    os=freebsd
+    ;;
+esac
+
+if [ $os = unsupported ]
+then
+  echo 
+  echo "*** configure: unsupported operating system" 1>&2
+  exit 1
+fi
+
+echo " $os"
+
+#--------------------------------------------------------------------------#
+# search for C compilers
+
+printf "$fmt" "C compiler"
+
+if [ "$CC" ]; then searchlist="$CC"; else searchlist="gcc cc"; fi
+CC=""
+
+compilers=""
+for cc in $searchlist
+do
+  for dir in `echo $PATH | sed -e 's,:, ,g'`
+  do
+    if [ -f $dir/$cc ]
+    then
+      [ "$CC" ] || CC="$cc"
+      [ "$compilers" ] && compilers="$compilers "
+      compilers="${compilers}$cc"
+      break
+    fi
+  done
+done
+
+if [  "$CC" ]
+then
+  case $CC in
+    gcc) CFLAGS="-g -Wall";;
+    cc) CFLAGS="-g -W";;
+    *) CFLAGS="-g";;
+  esac
+  echo " $CC $CFLAGS"
+else
+  echo
+  echo "*** configure: no C compiler found" 1>&2
+  exit 1
+fi
+
+#--------------------------------------------------------------------------#
+# search for C++ compilers
+
+printf "$fmt" "C++ compilers"
+
+if [ "$CXX" ]; then searchlist="$CXX"; else searchlist="g++ gcc CC"; fi
+
+COMPILERS=""
+for cc in $searchlist
+do
+  for dir in `echo $PATH | sed -e 's,:, ,g'`
+  do
+    if [ -f $dir/$cc ]
+    then
+      [ "$COMPILERS" ] && COMPILERS="$COMPILERS "
+      COMPILERS="${COMPILERS}$cc"
+      break
+    fi
+  done
+done
+
+if [ "$COMPILERS" ]
+then
+  echo " $COMPILERS"
+else
+  echo
+  echo "*** configure: no C++ compiler found" 1>&2
+  exit 1
+fi
+
+for cc in $COMPILERS
+do
+  [ $cc = CC ] && \
+    echo "*** warning: CC as C++ compiler does not work properly yet" 1>&2
+done
+
+#--------------------------------------------------------------------------#
+# check if installation directory exists
+#
+printf "$fmt" "prefix"
+
+case "$prefix" in
+  /*)
+    ;;
+  *)
+    echo
+    echo "*** configure: prefix '$prefix' is no absolute path name" 1>&2
+    exit 1
+    ;;
+esac
+
+echo " $prefix"
+
+#--------------------------------------------------------------------------#
+# searching for real libc
+
+printf "$fmt" libc
+
+tmp=/tmp/configure-ccmalloc-findlibc-$$
+dir=`pwd`
+mkdir /tmp/configure-ccmalloc-findlibc-$$ || exit 1
+cd $tmp
+rm -f main.c
+cat <<EOF >main.c
+#include <stdio.h>
+#include <dlfcn.h>
+#include <stdlib.h>
+int main(int arc, char **argv)
+{
+  int bl;
+  const char * str;
+  void * handle = dlopen(argv[1], RTLD_NOW);
+  if((str = dlerror()) != NULL) fprintf(stderr, "*** %s\n", str);
+  exit(str != NULL);
+}
+EOF
+
+case $os in
+  freebsd )
+    LIB=""
+    ;;
+  * )
+    LIB="-ldl"
+    ;;
+esac
+
+libc=notfound
+if $CC main.c $LIB 1>/dev/null 2>/dev/null
+then
+  libc="`ldd ./a.out | awk '/libc/{print $3}'`"
+  if ./a.out "$libc" 1>/dev/null 2>/dev/null
+  then 
+    libc="$libc"
+  else
+    libc=notfound
+  fi
+fi
+cd $dir
+rm -rf $tmp
+
+if [ "$libc" = notfound ]
+then
+  echo
+  echo "*** configure: could not find 'libc.so'" 1>&2
+  exit 1
+fi
+
+echo " $libc"
+
+#--------------------------------------------------------------------------#
+
+printf "$fmt" atexit
+
+tmp=/tmp/configure-ccmalloc-atexit-$$
+dir=`pwd`
+mkdir /tmp/configure-ccmalloc-atexit-$$ || exit 1
+cd $tmp
+rm -f main.c
+
+cat <<EOF >main.c
+#include <stdlib.h>
+#include <stdio.h>
+void foo() { printf ("yes\n"); }
+int main(void)
+{
+  atexit(foo);
+  exit(0);
+}
+EOF
+
+atexit=no
+if $CC main.c 1>/dev/null 2>/dev/null
+then
+  [ "`./a.out`" = yes ] && atexit=yes
+fi
+cd $dir
+rm -rf $tmp
+
+echo " $atexit"
+
+#--------------------------------------------------------------------------#
+
+printf "$fmt" "setting up directories"
+for d in obj lib bin
+do
+  if [ ! -d $d ]; then mkdir $d; fi
+done
+echo " done"
+
+#--------------------------------------------------------------------------#
+#
+printf "$fmt" "generating src/config.h"
+
+rm -f src/config.h
+(
+echo "#ifndef _config_h_INCLUDED"
+[ $debug = no ] && echo "#define NDEBUG"
+[ $os = solaris ] && echo "#define OS_IS_SOLARIS"
+[ $os = linux ] && echo "#define OS_IS_LINUX"
+[ $atexit = yes ] && echo "#define HAVE_ATEXIT"
+cat<<-EOF
+#define VERSION "$version"
+#define NAME_OF_LIBC "$libc"
+#if defined(OS_IS_LINUX) || defined(OS_IS_SOLARIS)
+#define CAN_GET_ARGV0
+#endif
+#endif /* _config_h_INCLUDED */
+EOF
+) > src/config.h
+echo " done"
+
+#--------------------------------------------------------------------------#
+#
+dst=Makefile
+printf "$fmt" "generating $dst"
+
+TARGETS=""
+for cc in $COMPILERS
+do
+  [ "$TARGETS" ] && TARGETS="$TARGETS "
+  TARGETS="$TARGETS obj/ccmalloc-${cc}.o"
+done
+
+rm -f $dst
+sed \
+-e "s,@PREFIX@,$prefix,g" \
+-e "s,@CC@,$CC,g" \
+-e "s,@CFLAGS@,$CFLAGS,g" \
+-e "s,@COMPILERS@,$COMPILERS,g" \
+-e "s,@VERSION@,$version,g" \
+-e "s,@TARGETS@,$TARGETS,g" \
+Makefile.in > $dst
+
+echo >> $dst
+cat >>Makefile<<EOF
+#-------------------------------------------------------------------------#
+# automatically generated goals for C++ static initializers
+#
+EOF
+for cc in $COMPILERS
+do
+  case $cc in 
+    CC*)
+      CXXFLAGS="-g -noex"
+      ;;
+    *) 
+      CXXFLAGS="-g"
+      ;;
+  esac
+  echo \
+    "obj/ccmalloc-${cc}.o: src/ccmalloc.cc src/config.h src/ccmalloc.h" \
+    >> $dst
+  echo "	$cc -DCTORDTOR $CXXFLAGS -c -o \$@ src/ccmalloc.cc" >> $dst
+  echo >> $dst
+done
+
+cat >>Makefile<<EOF
+#-------------------------------------------------------------------------#
+
+install: all
+	./util/install bin/ccmalloc \$(PREFIX)/bin
+	./util/install lib/libccmalloc.a \$(PREFIX)/lib
+	./util/install ccmalloc.cfg \$(PREFIX)/share/ccmalloc
+EOF
+
+for cc in $COMPILERS
+do
+echo "	./util/install obj/ccmalloc-${cc}.o \$(PREFIX)/lib" >> $dst
+done
+
+cat >>Makefile<<EOF
+
+#-------------------------------------------------------------------------#
+
+uninstall:
+	rm -f \$(PREFIX)/bin/ccmalloc
+	rm -f \$(PREFIX)/lib/libccmalloc.a
+	rm -f \$(PREFIX)/share/ccmalloc/ccmalloc.cfg
+EOF
+
+for cc in $COMPILERS
+do
+echo "	rm -f \$(PREFIX)/lib/ccmalloc-${cc}.o " >> $dst
+done
+
+echo " done"
+

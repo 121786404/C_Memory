@@ -1,0 +1,4 @@
+file test_C_18.exe
+log test_C_18.log
+dont-log-chain f;g;h
+only-log-chain h;i
