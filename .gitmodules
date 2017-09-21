@@ -46,3 +46,6 @@
 [submodule "cstuff"]
 	path = cstuff
 	url = https://github.com/MoserMichael/cstuff
+[submodule "duma"]
+	path = duma
+	url = https://github.com/fortitudezhang/duma
