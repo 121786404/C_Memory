@@ -49,3 +49,6 @@
 [submodule "duma"]
 	path = duma
 	url = https://github.com/fortitudezhang/duma
+[submodule "leakcanary"]
+	path = leakcanary
+	url = https://github.com/square/leakcanary
